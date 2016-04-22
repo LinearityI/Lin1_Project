@@ -36,6 +36,29 @@ def drawPlane(n,p):
 def drawPoint(p):
     mlab.points3d(p[0],p[1],p[2],scale_factor=.25)
 
+def projectedPoint(u, v, pp1, pp2):
+	#normalizing the vectors
+	#u = u/np.linalg.norm(u)
+	#v = u/np.linalg.norm(v)
+	w_0 = pp1 - pp2 #vector from pp1 to pp2
+	a = np.dot(np.transpose(u),u) #supposed to be 1?
+	b = np.dot(np.transpose(u),v)
+	c = np.dot(np.transpose(v),v) #supposed to be 1?
+	d = np.dot(np.transpose(u),w_0)
+	e = np.dot(np.transpose(v),w_0)
+
+	s_c = (b*e - c*d) / (a*c - b**2)
+	t_c = (a*e - b*d) / (a*c - b**2)
+
+	PP_1c = pp1 + s_c*u
+	PP_2c = pp2 + t_c*v
+
+	return PP_1c, PP_2c
+
+
+
+
+
 pt = np.random.rand(3,1)
 print "pt", pt
 v1 = np.random.rand(3,1)
@@ -57,8 +80,5 @@ drawPoint(pp2)
 drawLine(v1,pt)
 drawLine(v2,pt)
 
-#ax.set_xlim(-5,5)
-#ax.set_ylim(-5,5)
-#ax.set_zlim(-5,5)
 mlab.view(distance=10)
 mlab.show()
