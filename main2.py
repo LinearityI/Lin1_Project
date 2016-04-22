@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
@@ -60,7 +61,7 @@ def projectedPoint(u, v, pp1, pp2):
 
 
 pt = np.random.rand(3,1)
-print "pt", pt
+print "pt-original", pt
 v1 = np.random.rand(3,1)
 v2 = np.random.rand(3,1)
 
@@ -79,6 +80,8 @@ drawPoint(pp2)
 
 drawLine(v1,pt)
 drawLine(v2,pt)
+
+print 'pt-reconstructed', projectedPoint(v1, v2, pp1, pp2)
 
 mlab.view(distance=10)
 mlab.show()
