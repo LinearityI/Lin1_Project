@@ -4,6 +4,11 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 from mayavi import mlab
 
+
+# Custom Module
+from rendering import *
+
+
 def vec(*args):
     return np.transpose(np.atleast_2d(args))
 
@@ -24,6 +29,20 @@ def drawLine(n,p):
     zs = [e[2] for e in l]
     mlab.plot3d(xs,ys,zs)
 
+def drawLine_pt(p1,p2):
+    p1 = p1[:3]
+    p2 = p2[:3]
+
+    s = np.linspace(0,1)
+    v = p1-p2
+    l = [p2 + e*v for e in s]
+
+    xs = [e[0] for e in l]
+    ys = [e[1] for e in l]
+    zs = [e[2] for e in l]
+
+    mlab.plot3d(xs,ys,zs)
+
 
 def drawPlane(n,p):
     d = -np.sum(p*n)
@@ -35,6 +54,7 @@ def drawPlane(n,p):
     mlab.mesh(xx,yy,zz)
 
 def drawPoint(p):
+    p = p[:3]
     mlab.points3d(p[0],p[1],p[2],scale_factor=.25)
 
 def projectedPoint(u, v, pp1, pp2):
@@ -57,31 +77,61 @@ def projectedPoint(u, v, pp1, pp2):
 	return PP_1c, PP_2c
 
 
+#
+#
+#
+#pt = np.random.rand(3,1)
+#print "pt-original", pt
+#v1 = np.random.rand(3,1)
+#v2 = np.random.rand(3,1)
+#
+#print "v1", v1
+#pp1 = projectP(v1,pt)
+#pp2 = projectP(v2,pt)
+#
+#print "pp1", pp1 
+#
+#drawPlane(v1,vec(0,0,0))
+#drawPlane(v2,vec(0,0,0))
+#
+#drawPoint(pt)
+#drawPoint(pp1)
+#drawPoint(pp2)
+#
+#drawLine(v1,pt)
+#drawLine(v2,pt)
+#
+#print 'pt-reconstructed', projectedPoint(v1, v2, pp1, pp2)
+#
+#mlab.view(distance=10)
+#mlab.show()
 
 
+#origin
+drawPoint(vec(0,0,0))
+drawPlane(vec(0,0,1),vec(0,0,0))
 
-pt = np.random.rand(3,1)
-print "pt-original", pt
-v1 = np.random.rand(3,1)
-v2 = np.random.rand(3,1)
 
-print "v1", v1
-pp1 = projectP(v1,pt)
-pp2 = projectP(v2,pt)
+#near-plane
+drawPlane(vec(0,0,1),vec(0,0,1))
 
-print "pp1", pp1 
+#drawPlane(vec(0,0,1),vec(0,0,100))
 
-drawPlane(v1,vec(0,0,0))
-drawPlane(v2,vec(0,0,0))
+#point
+pt = vec(2,4,3,1)
+drawPoint(vec(2,4,3))
 
-drawPoint(pt)
-drawPoint(pp1)
-drawPoint(pp2)
+p = projectionMatrix(1,5,90 * 3.14/180,1.0)
+print p
 
-drawLine(v1,pt)
-drawLine(v2,pt)
+#projected point
+ppt = np.dot(p,pt)
 
-print 'pt-reconstructed', projectedPoint(v1, v2, pp1, pp2)
+print ppt
 
-mlab.view(distance=10)
+drawPoint(ppt)
+
+drawLine_pt(pt,vec(0,0,0))
+
+mlab.view(distance=1)
 mlab.show()
