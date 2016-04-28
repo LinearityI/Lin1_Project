@@ -12,15 +12,15 @@ from rendering import *
 def vec(*args):
     return np.transpose(np.atleast_2d(args))
 
-def projectV(n,v):
+def projectV(n,v): #projected vector
     n = n / np.linalg.norm(n)
     mag = np.dot(np.transpose(n),v)
     return mag * n
 
-def projectP(n,v):
+def projectP(n,v): #Projected plane
     return v - projectV(n,v) 
 
-def drawLine(n,p):
+def drawLine(n,p): 
     s = np.linspace(-1,1)
     l = [p+e*n for e in s]
 
@@ -53,9 +53,9 @@ def drawPlane(n,p):
 
     mlab.mesh(xx,yy,zz)
 
-def drawPoint(p):
+def drawPoint(p,c=None):
     p = p[:3]
-    mlab.points3d(p[0],p[1],p[2],scale_factor=.25)
+    mlab.points3d(p[0],p[1],p[2],scale_factor=.25,color=c)
 
 def projectedPoint(u, v, pp1, pp2):
 	#normalizing the vectors
@@ -113,25 +113,55 @@ drawPlane(vec(0,0,1),vec(0,0,0))
 
 
 #near-plane
-drawPlane(vec(0,0,1),vec(0,0,1))
+drawPlane(vec(0,0,-1),vec(0,0,1))
+
+#far-plane
+drawPlane(vec(0,0,4),vec(0,0,1))
 
 #drawPlane(vec(0,0,1),vec(0,0,100))
 
 #point
+
+p = projectionMatrix(1,5,60*3.14/180,1.0)
+print p
+D,V = np.linalg.eig(p)
+print 'Inverse', np.linalg.inv(p)
+print 'V', V
+print 'D', D
+
+print p
+
+pts = []
+
+for i in [-1,1]:
+    for j in [-1,1]:
+        for k in [-1,1]:
+            print i,j,k
+            pt = vec(i,j,k+2,1)
+            pts += [pt]
+            drawPoint(pt)
+            drawLine_pt(pt,vec(0,0,0))
+            ppt = np.dot(p,pt)
+            print 'ppt', ppt
+            drawPoint(ppt,c=(1,0,0))
+
+
+#for pt1 in pts:
+#    for pt2 in pts:
+#        drawLine_pt(pt1,pt2)
+
+
 pt = vec(2,4,3,1)
 drawPoint(vec(2,4,3))
-
-p = projectionMatrix(1,5,90 * 3.14/180,1.0)
-print p
 
 #projected point
 ppt = np.dot(p,pt)
 
 print ppt
 
-drawPoint(ppt)
+drawPoint(ppt,c=(0,1,0))
 
 drawLine_pt(pt,vec(0,0,0))
 
-mlab.view(distance=1)
+mlab.view(distance=10)
 mlab.show()
