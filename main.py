@@ -6,7 +6,7 @@ from mayavi import mlab
 
 
 # Custom Module
-import draw
+from draw import Painter
 from render import *
 from common import *
 
@@ -36,9 +36,12 @@ def projectedPoint(u, v, pp1, pp2):
     return PP_1c, PP_2c
 
 
+world = Painter(mlab.figure("World"))
+proj = Painter(mlab.figure("Projection"))
+
 #origin
-draw.point(vec(0,0,0))
-draw.plane(vec(0,0,1),vec(0,0,0))
+world.point(vec(0,0,0))
+world.plane(vec(0,0,1),vec(0,0,0))
 
 
 #near-plane
@@ -51,18 +54,24 @@ draw.plane(vec(0,0,1),vec(0,0,0))
 
 #point
 
-p = projectionMatrix(0.1,100,60*3.1415/180,1.0)
+p = projectionMatrix(0.1,1000,45*3.1415/180,1.0)
 #p = projectionMatrix(1,10.0,20,20)
 print 'p', p
 
-draw.point(vec(0,0,-2),c=(0,0,0))
 
+#camera
+world.point(vec(0,-2,-2),c=(0,0,0))
 v = viewMatrix(
-        vec(0,0,-2),#camera location
+        vec(0,-2,-2),#camera location
         vec(0,0,0),#object location
         vec(0,1,0) #'up' matrix
     )
 print 'v', v
+
+
+pts = []
+ppts = []
+
 
 for i in np.linspace(-1,1,2):
     for j in np.linspace(-1,1,2):
@@ -71,15 +80,28 @@ for i in np.linspace(-1,1,2):
             c = (float(c[0]),float(c[1]),float(c[2]))
 
             pt = vec(i,j,k,1)
-            draw.point(pt)
+            pts += [pt]
+            world.point(pt)
             ppt = np.dot(v,pt) #to camera-coordinates
             ppt = np.dot(p,ppt) #perspective projection
 
-            ppt /= ppt[3] #z-divide
-            print 'pt', pt
-            print 'ppt', ppt
-            draw.point(ppt,c=c)
-            draw.line_pt(pt,ppt)
+            ppt /= ppt[3] #depth-divide
+            ppts += [ppt]
+            #print 'pt', pt
+            #print 'ppt', ppt
+            world.point(ppt,c=c)
+            world.line_pt(pt,ppt)
+
+for i in range(len(pts)):
+    for j in range(len(pts)):
+        if i>j and np.linalg.norm(pts[i] - pts[j]) <= 2:
+            c = np.random.rand(3,1)
+            c = (float(c[0]),float(c[1]),float(c[2]))
+            world.line_pt(pts[i],pts[j],c=c)
+            proj.line_pt(ppts[i],ppts[j],c=c)
+            
+
+
 
 #for i in range(100):
 #    n = -0.1
