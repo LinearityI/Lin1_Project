@@ -51,11 +51,11 @@ def drawPlane(n,p):
     [xx,yy]=np.meshgrid(x,y);
     zz = (-n[0]*xx - n[1]*yy - d)/n[2]
 
-    mlab.mesh(xx,yy,zz)
+    mlab.mesh(xx,yy,zz,opacity=0.2)
 
 def drawPoint(p,c=None):
-    p = p[:3]
-    mlab.points3d(p[0],p[1],p[2],scale_factor=.25,color=c)
+    #p = p[:3]
+    mlab.points3d(p[0],p[1],p[2],scale_factor=0.25,color=c,transparent=True,opacity=0.3)
 
 def projectedPoint(u, v, pp1, pp2):
 	#normalizing the vectors
@@ -122,46 +122,42 @@ drawPlane(vec(0,0,4),vec(0,0,1))
 
 #point
 
-p = projectionMatrix(1,5,60*3.14/180,1.0)
-print p
-D,V = np.linalg.eig(p)
-print 'Inverse', np.linalg.inv(p)
-print 'V', V
-print 'D', D
+p = projectionMatrix(0.1,100,60*3.1415/180,1.0)
+#p = projectionMatrix(1,10.0,20,20)
+print 'p', p
 
-print p
+drawPoint(vec(0,0,-2),c=(0,0,0))
 
-pts = []
+v = viewMatrix(
+        vec(0,0,-2),#camera location
+        vec(0,0,0),#object location
+        vec(0,1,0) #'up' matrix
+    )
+print 'v', v
 
-for i in [-1,1]:
-    for j in [-1,1]:
-        for k in [-1,1]:
-            print i,j,k
-            pt = vec(i,j,k+2,1)
-            pts += [pt]
+for i in np.linspace(-1,1,2):
+    for j in np.linspace(-1,1,2):
+        for k in np.linspace(-1,1,2):
+            c = np.random.rand(3,1)
+            c = (float(c[0]),float(c[1]),float(c[2]))
+
+            pt = vec(i,j,k,1)
             drawPoint(pt)
-            drawLine_pt(pt,vec(0,0,0))
-            ppt = np.dot(p,pt)
+            ppt = np.dot(v,pt) #to camera-coordinates
+            ppt = np.dot(p,ppt) #perspective projection
+
+            ppt /= ppt[3] #z-divide
+            print 'pt', pt
             print 'ppt', ppt
-            drawPoint(ppt,c=(1,0,0))
+            drawPoint(ppt,c=c)
+            drawLine_pt(pt,ppt)
 
-
-#for pt1 in pts:
-#    for pt2 in pts:
-#        drawLine_pt(pt1,pt2)
-
-
-pt = vec(2,4,3,1)
-drawPoint(vec(2,4,3))
-
-#projected point
-ppt = np.dot(p,pt)
-
-print ppt
-
-drawPoint(ppt,c=(0,1,0))
-
-drawLine_pt(pt,vec(0,0,0))
+#for i in range(100):
+#    pt = np.random.randn(4,1)*2
+#    drawPoint(pt)
+#    ppt = np.dot(p,pt)
+#    drawPoint(ppt,c=(0,0,1))
+#    drawLine_pt(pt,ppt)
 
 mlab.view(distance=10)
 mlab.show()
