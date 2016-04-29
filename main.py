@@ -1,93 +1,94 @@
+#!/usr/bin/python
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
+from mayavi import mlab
 
-def vec(*args):
-    """Returns arguments into column vector form"""
-    return np.transpose(np.atleast_2d(args))
 
-def projectV(n,v):
-    """Returns the result of projection into a vector"""
+# Custom Module
+import draw
+from render import *
+from common import *
+
+def projectV(n,v): #projected vector
     n = n / np.linalg.norm(n)
     mag = np.dot(np.transpose(n),v)
     return mag * n
 
-def projectP(n,v):
+def projectP(n,v): #Projected plane
     return v - projectV(n,v) 
 
-def drawLine(fig,n,p):
-    """Draws a line based on a normal vector & point"""
-    s = np.linspace(-1,1)
-    l = [p+e*n for e in s]
+def projectedPoint(u, v, pp1, pp2):
+    #finds closest point of "intersection" 
+    w_0 = pp1 - pp2 #vector from pp1 to pp2
+    a = np.dot(np.transpose(u),u) #supposed to be 1?
+    b = np.dot(np.transpose(u),v)
+    c = np.dot(np.transpose(v),v) #supposed to be 1?
+    d = np.dot(np.transpose(u),w_0)
+    e = np.dot(np.transpose(v),w_0)
 
-    xs = [e[0] for e in l]
-    ys = [e[1] for e in l]
-    zs = [e[2] for e in l]
+    s_c = (b*e - c*d) / (a*c - b**2)
+    t_c = (a*e - b*d) / (a*c - b**2)
 
-    plt3d = fig.gca(projection='3d')
-    plt3d.scatter(xs,ys,zs,'-',c='r')
+    PP_1c = pp1 + s_c*u
+    PP_2c = pp2 + t_c*v
 
-
-def drawPlane(fig,n,p):
-    d = -np.sum(p*n)
-    x = np.linspace(-2,2)
-    y = np.linspace(-2,2)
-    [xx,yy]=np.meshgrid(x,y);
-    z = (-n[0]*xx - n[1]*yy - d)/n[2]
-
-    plt3d = fig.gca(projection='3d')
-    plt3d.plot_surface(xx,yy,z)
-
-def drawPoint(fig,p):
-    plt3d = fig.gca(projection='3d')
-    plt3d.scatter([p[0]],[p[1]],[p[2]],c='r',marker='o')
-
-pt = np.random.rand(3,1)
-print "pt", pt
-v1 = np.random.rand(3,1)
-#v1 = vec(0,0,1)
-v2 = np.random.rand(3,1)
-
-print "v1", v1
-print "v2", v2
-
-print "pp1", projectP(v1,pt)
-print vec(0,0,0)
+    return PP_1c, PP_2c
 
 
-
-fig = plt.figure()
-ax = fig.gca(projection='3d')
-drawPlane(fig,v1,vec(0,0,0))
-drawPlane(fig,v2,vec(0,0,0))
+#origin
+draw.point(vec(0,0,0))
+draw.plane(vec(0,0,1),vec(0,0,0))
 
 
+#near-plane
+#draw.plane(vec(0,0,-1),vec(0,0,1))
 
-drawPoint(fig,pt)
-pp1 = projectP(v1,pt)
-pp2 = projectP(v2,pt)
+#far-plane
+#draw.plane(vec(0,0,4),vec(0,0,1))
 
-drawPoint(fig,pp1)
-drawPoint(fig,pp2)
+#drawPlane(vec(0,0,1),vec(0,0,100))
 
-drawLine(fig,v1,pt)
-drawLine(fig,v2,pt)
+#point
 
-def findIntersection(v1, pp1, v2, pp2):
-    #Copied from DrawLine function, hopefully returns components
-    s = np.linspace(-1,1)
-    l = [p+e*n for e in s]
+p = projectionMatrix(0.1,100,60*3.1415/180,1.0)
+#p = projectionMatrix(1,10.0,20,20)
+print 'p', p
 
-    xs = [e[0] for e in l]
-    ys = [e[1] for e in l]
-    zs = [e[2] for e in l] 
+draw.point(vec(0,0,-2),c=(0,0,0))
 
+v = viewMatrix(
+        vec(0,0,-2),#camera location
+        vec(0,0,0),#object location
+        vec(0,1,0) #'up' matrix
+    )
+print 'v', v
 
+for i in np.linspace(-1,1,2):
+    for j in np.linspace(-1,1,2):
+        for k in np.linspace(-1,1,2):
+            c = np.random.rand(3,1)
+            c = (float(c[0]),float(c[1]),float(c[2]))
 
+            pt = vec(i,j,k,1)
+            draw.point(pt)
+            ppt = np.dot(v,pt) #to camera-coordinates
+            ppt = np.dot(p,ppt) #perspective projection
 
-ax.set_xlim(-5,5)
-ax.set_ylim(-5,5)
-ax.set_zlim(-5,5)
+            ppt /= ppt[3] #z-divide
+            print 'pt', pt
+            print 'ppt', ppt
+            draw.point(ppt,c=c)
+            draw.line_pt(pt,ppt)
 
+#for i in range(100):
+#    n = -0.1
+#    f = 10
+#    pt = np.random.randn(4,1)*2
+#    draw.point(pt)
+#    ppt = np.dot(p,np.dot(v,pt))
+#    draw.point(ppt,c=(0,0,1))
+#    draw.line_pt(pt,ppt)
 
-plt.show()
+mlab.view(distance=10)
+mlab.show()
