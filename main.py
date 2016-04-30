@@ -21,23 +21,24 @@ def projectP(n,v): #Projected plane
 def projectedPoint(u, v, pp1, pp2):
     #finds closest point of "intersection" 
     w_0 = pp1 - pp2 #vector from pp1 to pp2
-    a = np.dot(np.transpose(u),u) #supposed to be 1?
-    b = np.dot(np.transpose(u),v)
-    c = np.dot(np.transpose(v),v) #supposed to be 1?
-    d = np.dot(np.transpose(u),w_0)
-    e = np.dot(np.transpose(v),w_0)
+    a = float(np.dot(u.T,u)) #supposed to be 1?
+    b = float(np.dot(u.T,v))
+    c = float(np.dot(v.T,v)) #supposed to be 1?
+    d = float(np.dot(u.T,w_0))
+    e = float(np.dot(v.T,w_0))
 
     s_c = (b*e - c*d) / (a*c - b**2)
     t_c = (a*e - b*d) / (a*c - b**2)
 
-    PP_1c = pp1 + s_c*u
-    PP_2c = pp2 + t_c*v
-
-    return PP_1c, PP_2c
+    PP_1c = vec(*[float(e) for e in pp1 + s_c*u])
+    PP_2c = vec(*[float(e) for e in pp2 + t_c*v])
+    
+    return (PP_1c+PP_2c)/2
 
 
 world = Painter(mlab.figure("World"))
 proj = Painter(mlab.figure("Projection"))
+reconstruct = Painter(mlab.figure("Reconstruct"))
 
 #origin
 world.point(vec(0,0,0))
@@ -53,24 +54,36 @@ world.plane(vec(0,0,1),vec(0,0,0))
 #drawPlane(vec(0,0,1),vec(0,0,100))
 
 #point
-
-p = projectionMatrix(0.1,1000,45*3.1415/180,1.0)
+near = 0.1
+far = 1000
+fov = 45*3.1415/180 #field of view, converted to radians
+aspect_ratio = 1.0
+p = projectionMatrix(near,far,fov,aspect_ratio)
 #p = projectionMatrix(1,10.0,20,20)
 print 'p', p
 
-
-#camera
-world.point(vec(0,-2,-2),c=(0,0,0))
-v = viewMatrix(
-        vec(0,-2,-2),#camera location
+camera1_location = vec(0,-4,-2)
+#camera 1
+world.point(vec(0,-4,-2),c=(0,0,0))
+camera_direction1, up1, side1, final_viewMatrix1 = viewMatrix(
+        camera1_location,#camera location
         vec(0,0,0),#object location
         vec(0,1,0) #'up' matrix
     )
-print 'v', v
+
+camera2_location = vec(-1,2,3)
+#camera 2
+world.point(vec(0,-4,-2),c=(0,0,0))
+camera_direction2, up2, side2, final_viewMatrix2 = viewMatrix(
+        camera2_location,#camera location
+        vec(0,0,0),#object location
+        vec(0,1,0) #'up' matrix
+    )
 
 
 pts = []
-ppts = []
+ppts1 = []
+ppts2 = []
 
 
 for i in np.linspace(-1,1,2):
@@ -82,15 +95,24 @@ for i in np.linspace(-1,1,2):
             pt = vec(i,j,k,1)
             pts += [pt]
             world.point(pt)
-            ppt = np.dot(v,pt) #to camera-coordinates
-            ppt = np.dot(p,ppt) #perspective projection
+            
+            ppt1 = np.dot(final_viewMatrix1,pt) #to camera-coordinates
+            ppt1 = np.dot(p,ppt1) #perspective projection
 
-            ppt /= ppt[3] #depth-divide
-            ppts += [ppt]
+            ppt1 /= ppt1[3] #depth-divide
+            ppts1 += [ppt1]
             #print 'pt', pt
-            #print 'ppt', ppt
-            world.point(ppt,c=c)
-            world.line_pt(pt,ppt)
+            # print 'ppt', ppt
+
+            ppt2 = np.dot(final_viewMatrix2,pt) #to camera-coordinates
+            ppt2 = np.dot(p,ppt2) #perspective projection
+
+            ppt2 /= ppt2[3] #depth-divide
+            ppts2 += [ppt2]
+            #print 'pt', pt
+            # print 'ppt', ppt
+#print ppts1, ppts2
+
 
 for i in range(len(pts)):
     for j in range(len(pts)):
@@ -98,7 +120,7 @@ for i in range(len(pts)):
             c = np.random.rand(3,1)
             c = (float(c[0]),float(c[1]),float(c[2]))
             world.line_pt(pts[i],pts[j],c=c)
-            proj.line_pt(ppts[i],ppts[j],c=c)
+            proj.line_pt(ppts1[i],ppts1[j],c=c)
             
 
 
@@ -111,6 +133,54 @@ for i in range(len(pts)):
 #    ppt = np.dot(p,np.dot(v,pt))
 #    draw.point(ppt,c=(0,0,1))
 #    draw.line_pt(pt,ppt)
+
+def find_intersection(cam1, cam2, dir1, dir2, a1, a2, b1, b2):
+    d1 = near
+    up1 = vec(0, 1.0, 0) #basically the y axis
+
+    cam1x = side1
+    cam1y = up1
+    cam1z = cross(cam1x, cam1y)
+
+    print 'cam1x', cam1x
+    print 'cam1y', cam1y
+    print 'cam1z', cam1z
+
+    cam_coord_transform1 = np.hstack((cam1x, cam1y, cam1z)) #T, matrix that helps you convert to the camera's coordinate system
+    print 'cct', cam_coord_transform1
+
+    cartesian_coord_transform1 = np.linalg.inv(cam_coord_transform1)
+    print 'cartcoordtrans', cartesian_coord_transform1
+
+    newabd1 = np.dot(cartesian_coord_transform1, vec(a1, b1, d1)) #direction facing object from cam1
+    print 'newabd1', newabd1
+
+    d2 = near    
+    up2 = vec(0, 1.0, 0) #basically the y axis
+    cam2x = side2
+    cam2y = up2
+    cam2z = cross(cam2x, cam2y)
+    cam_coord_transform2 = np.hstack((cam2x, cam2y, cam2z)) #T, matrix that helps you convert to the camera's coordinate system
+    cartesian_coord_transform2 = np.linalg.inv(cam_coord_transform2)
+    newabd2 = np.dot(cartesian_coord_transform2, vec(a2, b2, d2)) #direction facing object from cam2
+
+    return projectedPoint(newabd1, newabd2, cam1, cam2)
+
+
+for ppt1,ppt2 in zip(ppts1,ppts2):
+    print ppt1[0]
+    rpt = find_intersection(
+        camera1_location,
+        camera2_location,
+        camera_direction1,
+        camera_direction2,
+        ppt1[0],
+        ppt2[0],
+        ppt1[1],
+        ppt2[1]
+    )
+    print 'rpt', rpt
+    reconstruct.point(rpt,c=(0,0,0))
 
 mlab.view(distance=10)
 mlab.show()
