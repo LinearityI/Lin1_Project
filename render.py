@@ -2,6 +2,66 @@ from common import *
 from mayavi import mlab
 import numpy as np 
 
+class Camera:
+    def __init__(self,n,f,fov,ar):
+        self.n = n
+        self.f = f
+        self.fov = fov
+        self.ar = ar
+
+        self.p = projectionMatrix(n,f,fov,ar)
+
+        self.h = 2 * np.tan(fov/2) * n
+        self.w = ar * self.h 
+
+        self.pos = vec(0,0,0)
+
+    def setpos(self,pos):
+        self.pos = pos
+    def lookat(self,obj):
+        up = vec(0,1,0)
+        f = normalize(obj - self.pos) #positive z
+        s = cross(f,up) #positive x
+        up = cross(s,f) #positive y
+
+        self.xaxis = s
+        self.yaxis = up
+        self.zaxis = f
+
+        ##rotation
+        #R = np.asarray([
+        #    [s[0,0],up[0,0],f[0,0],0],
+        #    [s[1,0],up[1,0],f[1,0],0],
+        #    [s[2,0],up[2,0],f[2,0],0],
+        #    [0,0,0,1]
+        #])
+        ##translation
+        #T = np.asarray([
+        #    [1,0,0,-self.pos[0]],
+        #    [0,1,0,-self.pos[1]],
+        #    [0,0,1,-self.pos[2]],
+        #    [0,0,0,1]
+        #    ])
+        #self.v = np.dot(R,T)
+        #print 'v', self.v
+        #return self.v
+
+        R = np.asarray([
+            [s[0,0],s[1,0],s[2,0],0],
+            [up[0,0],up[1,0],up[2,0],0],
+            [f[0,0],f[1,0],f[2,0],0],
+            [0,0,0,1]
+            ])
+        
+        #translation
+        T = np.asarray([
+            [1,0,0,-self.pos[0]],
+            [0,1,0,-self.pos[1]],
+            [0,0,1,-self.pos[2]],
+            [0,0,0,1]
+            ])
+        self.v = np.dot(R,T)
+
 def viewMatrix(cam, obj, up):
 
         f = normalize(cam - obj)
@@ -108,7 +168,7 @@ def projectionMatrix(n,f,fov,ar):
             [1/(ar*np.tan(fov/2)), 0, 0, 0],
             [0, 1/np.tan(fov/2), 0, 0],
             [0, 0, -(f+n)/(f-n), -2*f*n/(f-n)],
-            [0, 0, -1, 0]
+            [0, 0, 1, 0]
         ])
 
 #cam = vec(0,0,-1)
