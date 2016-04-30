@@ -35,8 +35,8 @@ def projectedPoint(u, v, pp1, pp2):
 
     return PP_1c, PP_2c
 
-
 world = Painter(mlab.figure("World"))
+
 proj = Painter(mlab.figure("Projection"))
 
 #origin
@@ -73,6 +73,7 @@ pts = []
 ppts = []
 
 
+#draw cube
 for i in np.linspace(-1,1,2):
     for j in np.linspace(-1,1,2):
         for k in np.linspace(-1,1,2):
@@ -99,18 +100,6 @@ for i in range(len(pts)):
             c = (float(c[0]),float(c[1]),float(c[2]))
             world.line_pt(pts[i],pts[j],c=c)
             proj.line_pt(ppts[i],ppts[j],c=c)
-            
-
-
-
-#for i in range(100):
-#    n = -0.1
-#    f = 10
-#    pt = np.random.randn(4,1)*2
-#    draw.point(pt)
-#    ppt = np.dot(p,np.dot(v,pt))
-#    draw.point(ppt,c=(0,0,1))
-#    draw.line_pt(pt,ppt)
 
 mlab.view(distance=10)
 mlab.show()

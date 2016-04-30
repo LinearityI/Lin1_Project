@@ -43,4 +43,7 @@ class Painter:
 
         mlab.mesh(xx,yy,zz,opacity=0.2,figure=self.fig)
 
+    def scene(self):
+        return self.fig
+
 
