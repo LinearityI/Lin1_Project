@@ -5,3 +5,6 @@ def vec(*args):
 
 def normalize(v):
     return v / np.linalg.norm(v)
+
+def cross(v1,v2):
+	return np.cross(v1.T,v2.T).T

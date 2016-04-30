@@ -6,18 +6,21 @@ def viewMatrix(cam, obj, up):
 
         f = normalize(cam - obj)
         up = normalize(up)
-        s = np.cross(f[:,0],up[:,0])
-        up = np.cross(s,f[:,0])
-        print 's', s
-        print 'up', up
-        #up = np.cross(s.T,f.T).T
 
+
+        s = cross(f,up)
+        print 's', s
+
+        up = cross(s,f)
+        print 'up', up
+
+        #up = np.cross(s.T,f.T).T
 
         #rotation
         M1 = np.asarray([
-            [s[0],s[1],s[2],0],
-            [up[0],up[1],up[2],0],
-            [f[0],f[1],f[2],0],
+            [s[0,0],s[1,0],s[2,0],0],
+            [up[0,0],up[1,0],up[2,0],0],
+            [f[0,0],f[1,0],f[2,0],0],
             [0,0,0,1]
             ])
         print 'M1', M1
@@ -31,7 +34,7 @@ def viewMatrix(cam, obj, up):
             ])
 
         print 'M2', M2
-        return np.dot(M1,M2)
+        return f, up, s, np.dot(M1,M2)
 
 
 #	z = normalize(cam - obj)#What the camera is looking at, z axis
