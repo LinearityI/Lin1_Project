@@ -41,7 +41,7 @@ class Painter:
         [xx,yy]=np.meshgrid(x,y);
         zz = (-n[0]*xx - n[1]*yy - d)/n[2]
 
-        mlab.mesh(xx,yy,zz,opacity=0.2,figure=self.fig)
+        mlab.mesh(xx,yy,zz,opacity=0.9,figure=self.fig)
 
     def scene(self):
         return self.fig

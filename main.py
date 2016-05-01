@@ -21,11 +21,11 @@ def projectP(n,v): #Projected plane
 def projectedPoint(u, v, pp1, pp2):
     #finds closest point of "intersection" 
     w_0 = pp1 - pp2 #vector from pp1 to pp2
-    a = float(np.dot(u.T,u)) #supposed to be 1?
-    b = float(np.dot(u.T,v))
-    c = float(np.dot(v.T,v)) #supposed to be 1?
-    d = float(np.dot(u.T,w_0))
-    e = float(np.dot(v.T,w_0))
+    a = np.sum(u*u)
+    b = np.sum(u*v)
+    c = np.sum(v*v)
+    d = np.sum(u*w_0)
+    e = np.sum(v*w_0)
 
     s_c = (b*e - c*d) / (a*c - b**2)
     t_c = (a*e - b*d) / (a*c - b**2)
@@ -37,8 +37,8 @@ def projectedPoint(u, v, pp1, pp2):
 
 def find_intersection(cam1, a1,b1, cam2, a2, b2):
     d1 = cam1.n
-    a1 *= cam1.w
-    b1 *= cam1.h
+    a1 *= cam1.w/2 #cam1.w
+    b1 *= cam1.h/2 #cam1.h
 
 
     cam_coord_transform1 = np.hstack((cam1.xaxis, cam1.yaxis, cam1.zaxis)) #T, matrix that helps you convert to the camera's coordinate system
@@ -49,8 +49,8 @@ def find_intersection(cam1, a1,b1, cam2, a2, b2):
     world.line(newabd1,cam1.pos,l=5)
 
     d2 = cam2.n
-    a2 *= cam2.w
-    b2 *= cam2.h
+    a2 *= cam2.w/2 #cam2.w
+    b2 *= cam2.h/2 #cam2.h
 
     cam_coord_transform2 = np.hstack((cam2.xaxis, cam2.yaxis, cam2.zaxis)) #T, matrix that helps you convert to the camera's coordinate system
     #cartesian_coord_transform2 = np.linalg.inv(cam_coord_transform2)
@@ -68,7 +68,6 @@ reconstruct = Painter(mlab.figure("Reconstruct"))
 
 #origin
 world.point(vec(0,0,0))
-world.plane(vec(0,0,1),vec(0,0,0))
 
 #near-plane
 #draw.plane(vec(0,0,-1),vec(0,0,1))
@@ -78,10 +77,9 @@ world.plane(vec(0,0,1),vec(0,0,0))
 
 #drawPlane(vec(0,0,1),vec(0,0,100))
 
-cam1 = Camera(0.1, 10, rad(90),1.0)
-cam2 = Camera(0.1, 10, rad(90),1.0)
+cam1 = Camera(0.5, 100, rad(90),1.0)
 
-cam1.setpos(vec(-1.5,2.2,3))
+cam1.setpos(vec(-1.6,1.2,2.2))
 cam1.lookat(vec(0,0,0))
 
 world.point(cam1.pos, c=(0,0,0))
@@ -89,7 +87,11 @@ world.line(cam1.zaxis,cam1.pos,c=(0,0,1))
 world.line(cam1.yaxis,cam1.pos,c=(0,1,0))
 world.line(cam1.xaxis,cam1.pos,c=(1,0,0))
 
-cam2.setpos(vec(3,1.6,-1.1))
+world.plane(cam1.zaxis,cam1.pos + cam1.n * cam1.zaxis)
+
+cam2 = Camera(0.5, 100, rad(90),1.0)
+
+cam2.setpos(vec(-2.2,1.6,-1.2))
 world.point(cam2.pos, c=(0,0,0))
 cam2.lookat(vec(0,0,0))
 
@@ -97,6 +99,8 @@ world.point(cam2.pos, c=(0,0,0))
 world.line(cam2.zaxis,cam2.pos,c=(0,0,1))
 world.line(cam2.yaxis,cam2.pos,c=(0,1,0))
 world.line(cam2.xaxis,cam2.pos,c=(1,0,0))
+
+world.plane(cam2.zaxis,cam2.pos + cam1.n * cam1.zaxis)
 
 cols = [] #colors
 pts = []
@@ -124,6 +128,7 @@ for i in np.linspace(-1,1,2):
 
             ppt1 /= ppt1[3] #depth-divide
             ppts1 += [ppt1]
+            #print 'ppt1', ppt1
 
             proj1.point(ppt1,c=c)
 

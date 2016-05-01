@@ -11,7 +11,7 @@ class Camera:
 
         self.p = projectionMatrix(n,f,fov,ar)
 
-        self.h = 2 * np.tan(fov/2) * n
+        self.h = 2 * np.tan(fov/2) * n 
         self.w = ar * self.h 
 
         self.pos = vec(0,0,0)
@@ -24,8 +24,8 @@ class Camera:
         s = cross(f,up) #positive x
         up = cross(s,f) #positive y
 
-        self.xaxis = s
-        self.yaxis = up
+        self.xaxis = normalize(s)
+        self.yaxis = normalize(up)
         self.zaxis = f
 
         ##rotation
@@ -43,7 +43,6 @@ class Camera:
         #    [0,0,0,1]
         #    ])
         #self.v = np.dot(R,T)
-        #print 'v', self.v
         #return self.v
 
         R = np.asarray([
@@ -61,6 +60,7 @@ class Camera:
             [0,0,0,1]
             ])
         self.v = np.dot(R,T)
+        print 'v', self.v
 
 def viewMatrix(cam, obj, up):
 
