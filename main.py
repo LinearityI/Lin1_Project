@@ -46,7 +46,7 @@ def find_intersection(cam1, a1,b1, cam2, a2, b2):
     newabd1 = np.dot(cam_coord_transform1, normalize(vec(a1, b1, d1))) #direction facing object from cam1
     newabd1 = vec(*[float(e) for e in newabd1])
 
-    world.line(newabd1,cam1.pos,l=5)
+    world.line(newabd1,cam1.pos,l=5,o=0.5)
 
     d2 = cam2.n
     a2 *= cam2.w/2 #cam2.w
@@ -56,7 +56,7 @@ def find_intersection(cam1, a1,b1, cam2, a2, b2):
     #cartesian_coord_transform2 = np.linalg.inv(cam_coord_transform2)
     newabd2 = np.dot(cam_coord_transform2, normalize(vec(a2, b2, d2))) #direction facing object from cam2
     newabd2 = vec(*[float(e) for e in newabd2])
-    world.line(newabd2,cam2.pos,l=5,c=(0,0,0))
+    world.line(newabd2,cam2.pos,l=5,c=(0,0,0),o=0.5)
 
     return projectedPoint(newabd1, newabd2, cam1.pos, cam2.pos)
 
@@ -77,9 +77,9 @@ world.point(vec(0,0,0))
 
 #drawPlane(vec(0,0,1),vec(0,0,100))
 
-cam1 = Camera(0.5, 100, rad(90),1.0)
+cam1 = Camera(2, 200, rad(90),1.5)
 
-cam1.setpos(vec(-1.6,1.2,2.2))
+cam1.setpos(vec(-4.4, -3.6, -4))
 cam1.lookat(vec(0,0,0))
 
 world.point(cam1.pos, c=(0,0,0))
@@ -87,11 +87,17 @@ world.line(cam1.zaxis,cam1.pos,c=(0,0,1))
 world.line(cam1.yaxis,cam1.pos,c=(0,1,0))
 world.line(cam1.xaxis,cam1.pos,c=(1,0,0))
 
-world.plane(cam1.zaxis,cam1.pos + cam1.n * cam1.zaxis)
+#draw frustrum borders
+world.line(cam1.zaxis + cam1.yaxis / np.tan(cam1.fov/2), cam1.pos, c=(1,1,1),o=0.2,l=3)
+world.line(cam1.zaxis - cam1.yaxis / np.tan(cam1.fov/2), cam1.pos, c=(1,1,1),o=0.2,l=3)
+world.line(cam1.zaxis + cam1.xaxis / np.tan(cam1.fov/2), cam1.pos, c=(1,1,1),o=0.2,l=3)
+world.line(cam1.zaxis - cam1.xaxis / np.tan(cam1.fov/2), cam1.pos, c=(1,1,1),o=0.2,l=3)
 
-cam2 = Camera(0.5, 100, rad(90),1.0)
+#world.plane(cam1.zaxis,cam1.pos + cam1.n * cam1.zaxis)
 
-cam2.setpos(vec(-2.2,1.6,-1.2))
+cam2 = Camera(0.5, 100, rad(120),1)
+
+cam2.setpos(vec(3, 6, -1.51))
 world.point(cam2.pos, c=(0,0,0))
 cam2.lookat(vec(0,0,0))
 
@@ -100,7 +106,12 @@ world.line(cam2.zaxis,cam2.pos,c=(0,0,1))
 world.line(cam2.yaxis,cam2.pos,c=(0,1,0))
 world.line(cam2.xaxis,cam2.pos,c=(1,0,0))
 
-world.plane(cam2.zaxis,cam2.pos + cam1.n * cam1.zaxis)
+#draw frustrum borders
+world.line(cam2.zaxis + cam2.yaxis / np.tan(cam2.fov/2) + cam2.xaxis / np.tan(cam2.fov/2), cam2.pos, c=(1,1,1),o=0.2,l=3)
+world.line(cam2.zaxis + cam2.yaxis / np.tan(cam2.fov/2) - cam2.xaxis / (cam2.ar * np.tan(cam2.fov/2)), cam2.pos, c=(1,1,1),o=0.2,l=3)
+world.line(cam2.zaxis - cam2.yaxis / np.tan(cam2.fov/2) + cam2.xaxis / np.tan(cam2.fov/2), cam2.pos, c=(1,1,1),o=0.2,l=3)
+world.line(cam2.zaxis - cam2.yaxis / np.tan(cam2.fov/2) - cam2.xaxis / (cam2.ar * np.tan(cam2.fov/2)), cam2.pos, c=(1,1,1),o=0.2,l=3)
+#world.plane(cam2.zaxis,cam2.pos + cam1.n * cam1.zaxis)
 
 cols = [] #colors
 pts = []
@@ -126,9 +137,9 @@ for i in np.linspace(-1,1,2):
             ppt1 = np.dot(cam1.v,pt) #to camera-coordinates
             ppt1 = np.dot(cam1.p,ppt1) #perspective projection
 
-            ppt1 /= ppt1[3] #depth-divide
+            ppt1 /= ppt1[3] #perspective-divide
             ppts1 += [ppt1]
-            #print 'ppt1', ppt1
+            print 'ppt1', ppt1
 
             proj1.point(ppt1,c=c)
 
@@ -136,8 +147,9 @@ for i in np.linspace(-1,1,2):
             ppt2 = np.dot(cam2.v,pt) #to camera-coordinates
             ppt2 = np.dot(cam2.p,ppt2) #perspective projection
 
-            ppt2 /= ppt2[3] #depth-divide
+            ppt2 /= ppt2[3] #perspective-divide
             ppts2 += [ppt2]
+            print 'ppt2', ppt2
 
             proj2.point(ppt2,c=c)
 
@@ -164,6 +176,7 @@ for i in range(len(pts)):
 #    draw.line_pt(pt,ppt)
 
 for ppt1,ppt2,col in zip(ppts1,ppts2,cols):
+    print 'orig', np.dot(np.linalg.inv(cam1.p),ppt1)
     rpt = find_intersection(
         cam1,
         ppt1[0],

@@ -9,10 +9,10 @@ class Camera:
         self.fov = fov
         self.ar = ar
 
-        self.p = projectionMatrix(n,f,fov,ar)
-
-        self.h = 2 * np.tan(fov/2) * n 
+        self.h = 2*n*np.tan(fov/2)
         self.w = ar * self.h 
+
+        self.p = projectionMatrix(n,f,fov,ar)
 
         self.pos = vec(0,0,0)
 
@@ -164,10 +164,12 @@ def projectionMatrix(n,f,fov,ar):
 #                [0,0,0,1]
 #            ])
     #perspective, fov-aspect
+    #tan(fov/2) = (1/2)*w / n
+    #1 / tan(fov/2) = 2n / w
     return np.asarray([
             [1/(ar*np.tan(fov/2)), 0, 0, 0],
             [0, 1/np.tan(fov/2), 0, 0],
-            [0, 0, -(f+n)/(f-n), -2*f*n/(f-n)],
+            [0, 0, (f+n)/(f-n), -2*f*n/(f-n)],
             [0, 0, 1, 0]
         ])
 
