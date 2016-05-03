@@ -33,37 +33,69 @@ def projectedPoint(u, v, pp1, pp2):
     PP_1c = vec(*[float(e) for e in pp1 + s_c*u])
     PP_2c = vec(*[float(e) for e in pp2 + t_c*v])
     
-    return (PP_1c+PP_2c)/2
+    return (PP_1c+PP_2c)/2.
 
-def find_intersection(cam1, a1,b1, cam2, a2, b2):
-    d1 = cam1.n
-    a1 *= cam1.w/2 #cam1.w
-    b1 *= cam1.h/2 #cam1.h
-
-
+def find_intersection(cam1, a1,b1, cam2, a2, b2, cam3, a3, b3):
+    global world
     cam_coord_transform1 = np.hstack((cam1.xaxis, cam1.yaxis, cam1.zaxis)) #T, matrix that helps you convert to the camera's coordinate system
-    #cartesian_coord_transform1 = np.linalg.inv(cam_coord_transform1)
-    newabd1 = np.dot(cam_coord_transform1, normalize(vec(a1, b1, d1))) #direction facing object from cam1
-    newabd1 = vec(*[float(e) for e in newabd1])
+    
 
-    world.line(newabd1,cam1.pos,l=5,o=0.5)
+    a1 *= cam1.w
+    b1 *= cam1.h
 
-    d2 = cam2.n
-    a2 *= cam2.w/2 #cam2.w
-    b2 *= cam2.h/2 #cam2.h
+    n1 = cross(vec(a1, b1, 0),vec(0,0,1)) #in camera's coordinates
+    n1 = np.dot(cam_coord_transform1,n1)
+    n1 = vec(*[float(e) for e in n1])
+    n1 = normalize(n1)
+    p1 = cam1.pos
 
+    #world.plane(n1,p1)
+    
     cam_coord_transform2 = np.hstack((cam2.xaxis, cam2.yaxis, cam2.zaxis)) #T, matrix that helps you convert to the camera's coordinate system
-    #cartesian_coord_transform2 = np.linalg.inv(cam_coord_transform2)
-    newabd2 = np.dot(cam_coord_transform2, normalize(vec(a2, b2, d2))) #direction facing object from cam2
-    newabd2 = vec(*[float(e) for e in newabd2])
-    world.line(newabd2,cam2.pos,l=5,c=(0,0,0),o=0.5)
+    
+    a2 *= cam2.w
+    b2 *= cam2.h
+    
+    n2 = cross(vec(a2, b2, 0),vec(0,0,1)) #in camera's coordinates
+    n2 = np.dot(cam_coord_transform2,n2)
+    n2 = vec(*[float(e) for e in n2])
+    n2 = normalize(n2)
+    p2 = cam2.pos
 
-    return projectedPoint(newabd1, newabd2, cam1.pos, cam2.pos)
+    #world.plane(n2,p2)
+    
+    cam_coord_transform3 = np.hstack((cam3.xaxis, cam3.yaxis, cam3.zaxis)) #T, matrix that helps you convert to the camera's coordinate system
+    
+
+    a3 *= cam3.w
+    b3 *= cam3.h
+    
+    n3 = cross(vec(a3, b3, 0),vec(0,0,1)) #in camera's coordinates
+    n3 = np.dot(cam_coord_transform3,n3)
+    n3 = vec(*[float(e) for e in n3])
+    n3 = normalize(n3)
+    p3 = cam3.pos
+
+    #world.plane(n3,p3)
+    
+    n1n2n3_matrix = np.hstack((n1, n2, n3))
+    #print 'n1n2n3', n1n2n3_matrix
+
+    finalpt = (
+        vdot(p1,n1)*cross(n2, n3)
+    + vdot(p2,n2)*cross(n3, n1)
+    + vdot(p3,n3)*cross(n1, n2)
+    )/(np.linalg.det(n1n2n3_matrix))
+
+    return finalpt
 
 
 world = Painter(mlab.figure("World"))
+
 proj1 = Painter(mlab.figure("Projection_1"))
 proj2 = Painter(mlab.figure("Projection_2"))
+proj3 = Painter(mlab.figure("Projection_3"))
+
 reconstruct = Painter(mlab.figure("Reconstruct"))
 
 #origin
@@ -77,10 +109,10 @@ world.point(vec(0,0,0))
 
 #drawPlane(vec(0,0,1),vec(0,0,100))
 
-cam1 = Camera(2, 200, rad(90),1.5)
+cam1 = Camera(0.3, 100, rad(60),1.5)
 
-cam1.setpos(vec(-4.4, -3.6, -4))
-cam1.lookat(vec(0,0,0))
+cam1.setpos(vec(-1.6, -2.6, -1.6))
+cam1.lookat(vec(0,0,0.5))
 
 world.point(cam1.pos, c=(0,0,0))
 world.line(cam1.zaxis,cam1.pos,c=(0,0,1))
@@ -88,18 +120,18 @@ world.line(cam1.yaxis,cam1.pos,c=(0,1,0))
 world.line(cam1.xaxis,cam1.pos,c=(1,0,0))
 
 #draw frustrum borders
-world.line(cam1.zaxis + cam1.yaxis / np.tan(cam1.fov/2), cam1.pos, c=(1,1,1),o=0.2,l=3)
-world.line(cam1.zaxis - cam1.yaxis / np.tan(cam1.fov/2), cam1.pos, c=(1,1,1),o=0.2,l=3)
-world.line(cam1.zaxis + cam1.xaxis / np.tan(cam1.fov/2), cam1.pos, c=(1,1,1),o=0.2,l=3)
-world.line(cam1.zaxis - cam1.xaxis / np.tan(cam1.fov/2), cam1.pos, c=(1,1,1),o=0.2,l=3)
+#world.line(cam1.zaxis + cam1.yaxis / np.tan(cam1.fov/2), cam1.pos, c=(1,1,1),o=0.2,l=3)
+#world.line(cam1.zaxis - cam1.yaxis / np.tan(cam1.fov/2), cam1.pos, c=(1,1,1),o=0.2,l=3)
+#world.line(cam1.zaxis + cam1.xaxis / np.tan(cam1.fov/2), cam1.pos, c=(1,1,1),o=0.2,l=3)
+#world.line(cam1.zaxis - cam1.xaxis / np.tan(cam1.fov/2), cam1.pos, c=(1,1,1),o=0.2,l=3)
 
 #world.plane(cam1.zaxis,cam1.pos + cam1.n * cam1.zaxis)
 
-cam2 = Camera(0.5, 100, rad(120),1)
+cam2 = Camera(0.5, 100, rad(60),1)
 
-cam2.setpos(vec(3, 6, -1.51))
+cam2.setpos(vec(2.9, -5.2, -1.51))
 world.point(cam2.pos, c=(0,0,0))
-cam2.lookat(vec(0,0,0))
+cam2.lookat(vec(1.0,0,0))
 
 world.point(cam2.pos, c=(0,0,0))
 world.line(cam2.zaxis,cam2.pos,c=(0,0,1))
@@ -107,26 +139,37 @@ world.line(cam2.yaxis,cam2.pos,c=(0,1,0))
 world.line(cam2.xaxis,cam2.pos,c=(1,0,0))
 
 #draw frustrum borders
-world.line(cam2.zaxis + cam2.yaxis / np.tan(cam2.fov/2) + cam2.xaxis / np.tan(cam2.fov/2), cam2.pos, c=(1,1,1),o=0.2,l=3)
-world.line(cam2.zaxis + cam2.yaxis / np.tan(cam2.fov/2) - cam2.xaxis / (cam2.ar * np.tan(cam2.fov/2)), cam2.pos, c=(1,1,1),o=0.2,l=3)
-world.line(cam2.zaxis - cam2.yaxis / np.tan(cam2.fov/2) + cam2.xaxis / np.tan(cam2.fov/2), cam2.pos, c=(1,1,1),o=0.2,l=3)
-world.line(cam2.zaxis - cam2.yaxis / np.tan(cam2.fov/2) - cam2.xaxis / (cam2.ar * np.tan(cam2.fov/2)), cam2.pos, c=(1,1,1),o=0.2,l=3)
+#world.line(cam2.zaxis + cam2.yaxis / np.tan(cam2.fov/2) + cam2.xaxis / np.tan(cam2.fov/2), cam2.pos, c=(1,1,1),o=0.2,l=3)
+#world.line(cam2.zaxis + cam2.yaxis / np.tan(cam2.fov/2) - cam2.xaxis / (cam2.ar * np.tan(cam2.fov/2)), cam2.pos, c=(1,1,1),o=0.2,l=3)
+#world.line(cam2.zaxis - cam2.yaxis / np.tan(cam2.fov/2) + cam2.xaxis / np.tan(cam2.fov/2), cam2.pos, c=(1,1,1),o=0.2,l=3)
+#world.line(cam2.zaxis - cam2.yaxis / np.tan(cam2.fov/2) - cam2.xaxis / (cam2.ar * np.tan(cam2.fov/2)), cam2.pos, c=(1,1,1),o=0.2,l=3)
 #world.plane(cam2.zaxis,cam2.pos + cam1.n * cam1.zaxis)
+
+cam3 = Camera(0.5, 100, rad(60),1.0)
+
+cam3.setpos(vec(-3,4.2, -5.4))
+world.point(cam3.pos, c=(0,0,0))
+cam3.lookat(vec(0,0.11,0))
+
+world.point(cam3.pos, c=(0,0,0))
+world.line(cam3.zaxis,cam3.pos,c=(0,0,1))
+world.line(cam3.yaxis,cam3.pos,c=(0,1,0))
+world.line(cam3.xaxis,cam3.pos,c=(1,0,0))
 
 cols = [] #colors
 pts = []
 ppts1 = []
 ppts2 = []
+ppts3 = []
 
 
 #draw cube
-for i in np.linspace(-1,1,2):
-    for j in np.linspace(-1,1,2):
-        for k in np.linspace(-1,1,2):
+for i in np.linspace(-1,1,3):
+    for j in np.linspace(-1,1,3):
+        for k in np.linspace(-1,1,3):
             c = np.random.rand(3,1)
             c = (float(c[0]),float(c[1]),float(c[2]))
             cols += [c]
-
 
             #point
             pt = vec(i,j,k,1)
@@ -154,6 +197,18 @@ for i in np.linspace(-1,1,2):
             proj2.point(ppt2,c=c)
 
 
+            #camera 3
+            ppt3 = np.dot(cam3.v,pt) #to camera-coordinates
+            ppt3 = np.dot(cam3.p,ppt3) #perspective projection
+
+            ppt3 /= ppt2[3] #perspective-divide
+            ppts3 += [ppt3]
+            print 'ppt3', ppt3
+
+            proj3.point(ppt3,c=c)
+
+
+
 for i in range(len(pts)):
     for j in range(len(pts)):
         if i>j and np.linalg.norm(pts[i] - pts[j]) <= 2:
@@ -162,6 +217,7 @@ for i in range(len(pts)):
             world.line_pt(pts[i],pts[j],c=c)
             proj1.line_pt(ppts1[i],ppts1[j],c=c)
             proj2.line_pt(ppts2[i],ppts2[j],c=c)
+            proj3.line_pt(ppts3[i],ppts3[j],c=c)
             
 
 
@@ -175,15 +231,17 @@ for i in range(len(pts)):
 #    draw.point(ppt,c=(0,0,1))
 #    draw.line_pt(pt,ppt)
 
-for ppt1,ppt2,col in zip(ppts1,ppts2,cols):
-    print 'orig', np.dot(np.linalg.inv(cam1.p),ppt1)
+for ppt1,ppt2,ppt3,col in zip(ppts1,ppts2,ppts3,cols):
     rpt = find_intersection(
         cam1,
         ppt1[0],
         ppt1[1],
         cam2,
         ppt2[0],
-        ppt2[1]
+        ppt2[1],
+        cam3,
+        ppt3[0],
+        ppt3[1]
     )
     print 'rpt', rpt
     reconstruct.point(rpt,c=col)
