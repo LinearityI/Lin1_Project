@@ -120,10 +120,10 @@ world.line(cam1.yaxis,cam1.pos,c=(0,1,0))
 world.line(cam1.xaxis,cam1.pos,c=(1,0,0))
 
 #draw frustrum borders
-#world.line(cam1.zaxis + cam1.yaxis / np.tan(cam1.fov/2), cam1.pos, c=(1,1,1),o=0.2,l=3)
-#world.line(cam1.zaxis - cam1.yaxis / np.tan(cam1.fov/2), cam1.pos, c=(1,1,1),o=0.2,l=3)
-#world.line(cam1.zaxis + cam1.xaxis / np.tan(cam1.fov/2), cam1.pos, c=(1,1,1),o=0.2,l=3)
-#world.line(cam1.zaxis - cam1.xaxis / np.tan(cam1.fov/2), cam1.pos, c=(1,1,1),o=0.2,l=3)
+world.line(cam1.zaxis + cam1.yaxis / np.tan(cam1.fov/2), cam1.pos, c=(1,1,1),o=0.2,l=3)
+world.line(cam1.zaxis - cam1.yaxis / np.tan(cam1.fov/2), cam1.pos, c=(1,1,1),o=0.2,l=3)
+world.line(cam1.zaxis + cam1.xaxis / np.tan(cam1.fov/2), cam1.pos, c=(1,1,1),o=0.2,l=3)
+world.line(cam1.zaxis - cam1.xaxis / np.tan(cam1.fov/2), cam1.pos, c=(1,1,1),o=0.2,l=3)
 
 #world.plane(cam1.zaxis,cam1.pos + cam1.n * cam1.zaxis)
 
@@ -139,10 +139,10 @@ world.line(cam2.yaxis,cam2.pos,c=(0,1,0))
 world.line(cam2.xaxis,cam2.pos,c=(1,0,0))
 
 #draw frustrum borders
-#world.line(cam2.zaxis + cam2.yaxis / np.tan(cam2.fov/2) + cam2.xaxis / np.tan(cam2.fov/2), cam2.pos, c=(1,1,1),o=0.2,l=3)
-#world.line(cam2.zaxis + cam2.yaxis / np.tan(cam2.fov/2) - cam2.xaxis / (cam2.ar * np.tan(cam2.fov/2)), cam2.pos, c=(1,1,1),o=0.2,l=3)
-#world.line(cam2.zaxis - cam2.yaxis / np.tan(cam2.fov/2) + cam2.xaxis / np.tan(cam2.fov/2), cam2.pos, c=(1,1,1),o=0.2,l=3)
-#world.line(cam2.zaxis - cam2.yaxis / np.tan(cam2.fov/2) - cam2.xaxis / (cam2.ar * np.tan(cam2.fov/2)), cam2.pos, c=(1,1,1),o=0.2,l=3)
+world.line(cam2.zaxis + cam2.yaxis / np.tan(cam2.fov/2) + cam2.xaxis / np.tan(cam2.fov/2), cam2.pos, c=(1,1,1),o=0.2,l=3)
+world.line(cam2.zaxis + cam2.yaxis / np.tan(cam2.fov/2) - cam2.xaxis / (cam2.ar * np.tan(cam2.fov/2)), cam2.pos, c=(1,1,1),o=0.2,l=3)
+world.line(cam2.zaxis - cam2.yaxis / np.tan(cam2.fov/2) + cam2.xaxis / np.tan(cam2.fov/2), cam2.pos, c=(1,1,1),o=0.2,l=3)
+world.line(cam2.zaxis - cam2.yaxis / np.tan(cam2.fov/2) - cam2.xaxis / (cam2.ar * np.tan(cam2.fov/2)), cam2.pos, c=(1,1,1),o=0.2,l=3)
 #world.plane(cam2.zaxis,cam2.pos + cam1.n * cam1.zaxis)
 
 cam3 = Camera(0.5, 100, rad(60),1.0)
@@ -156,6 +156,11 @@ world.line(cam3.zaxis,cam3.pos,c=(0,0,1))
 world.line(cam3.yaxis,cam3.pos,c=(0,1,0))
 world.line(cam3.xaxis,cam3.pos,c=(1,0,0))
 
+world.line(cam3.zaxis + cam3.yaxis / np.tan(cam3.fov/2), cam3.pos, c=(1,1,1),o=0.2,l=3)
+world.line(cam3.zaxis - cam3.yaxis / np.tan(cam3.fov/2), cam3.pos, c=(1,1,1),o=0.2,l=3)
+world.line(cam3.zaxis + cam3.xaxis / np.tan(cam3.fov/2), cam3.pos, c=(1,1,1),o=0.2,l=3)
+world.line(cam3.zaxis - cam3.xaxis / np.tan(cam3.fov/2), cam3.pos, c=(1,1,1),o=0.2,l=3)
+
 cols = [] #colors
 pts = []
 ppts1 = []
@@ -164,9 +169,9 @@ ppts3 = []
 
 
 #draw cube
-for i in np.linspace(-1,1,3):
-    for j in np.linspace(-1,1,3):
-        for k in np.linspace(-1,1,3):
+for i in np.linspace(-1,1,2):
+    for j in np.linspace(-1,1,2):
+        for k in np.linspace(-1,1,2):
             c = np.random.rand(3,1)
             c = (float(c[0]),float(c[1]),float(c[2]))
             cols += [c]
@@ -182,7 +187,6 @@ for i in np.linspace(-1,1,3):
 
             ppt1 /= ppt1[3] #perspective-divide
             ppts1 += [ppt1]
-            print 'ppt1', ppt1
 
             proj1.point(ppt1,c=c)
 
@@ -192,7 +196,6 @@ for i in np.linspace(-1,1,3):
 
             ppt2 /= ppt2[3] #perspective-divide
             ppts2 += [ppt2]
-            print 'ppt2', ppt2
 
             proj2.point(ppt2,c=c)
 
@@ -203,34 +206,10 @@ for i in np.linspace(-1,1,3):
 
             ppt3 /= ppt2[3] #perspective-divide
             ppts3 += [ppt3]
-            print 'ppt3', ppt3
 
             proj3.point(ppt3,c=c)
 
-
-
-for i in range(len(pts)):
-    for j in range(len(pts)):
-        if i>j and np.linalg.norm(pts[i] - pts[j]) <= 2:
-            c = np.random.rand(3,1)
-            c = (float(c[0]),float(c[1]),float(c[2]))
-            world.line_pt(pts[i],pts[j],c=c)
-            proj1.line_pt(ppts1[i],ppts1[j],c=c)
-            proj2.line_pt(ppts2[i],ppts2[j],c=c)
-            proj3.line_pt(ppts3[i],ppts3[j],c=c)
-            
-
-
-
-#for i in range(100):
-#    n = -0.1
-#    f = 10
-#    pt = np.random.randn(4,1)*2
-#    draw.point(pt)
-#    ppt = np.dot(p,np.dot(v,pt))
-#    draw.point(ppt,c=(0,0,1))
-#    draw.line_pt(pt,ppt)
-
+rpts = []
 for ppt1,ppt2,ppt3,col in zip(ppts1,ppts2,ppts3,cols):
     rpt = find_intersection(
         cam1,
@@ -243,8 +222,32 @@ for ppt1,ppt2,ppt3,col in zip(ppts1,ppts2,ppts3,cols):
         ppt3[0],
         ppt3[1]
     )
-    print 'rpt', rpt
+    rpts += [rpt]
     reconstruct.point(rpt,c=col)
+
+
+for i in range(len(pts)):
+    for j in range(len(pts)):
+        if i>j and np.random.random_sample() < 0.7:
+            c = np.random.rand(3,1)
+            c = (float(c[0]),float(c[1]),float(c[2]))
+            world.line_pt(pts[i],pts[j],c=c,w=0.03)
+            proj1.line_pt(ppts1[i],ppts1[j],c=c,w=0.005)
+            proj2.line_pt(ppts2[i],ppts2[j],c=c,w=0.001)
+            proj3.line_pt(ppts3[i],ppts3[j],c=c,w=0.01)
+            reconstruct.line_pt(rpts[i],rpts[j],c=c)
+            
+
+
+
+#for i in range(100):
+#    n = -0.1
+#    f = 10
+#    pt = np.random.randn(4,1)*2
+#    draw.point(pt)
+#    ppt = np.dot(p,np.dot(v,pt))
+#    draw.point(ppt,c=(0,0,1))
+#    draw.line_pt(pt,ppt)
 
 mlab.view(distance=10)
 mlab.show()
