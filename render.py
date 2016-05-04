@@ -13,6 +13,7 @@ class Camera:
         self.w = ar * self.h 
 
         self.p = projectionMatrix(n,f,fov,ar)
+        print 'p', self.p
 
         self.pos = vec(0,0,0)
 
