@@ -129,7 +129,7 @@ world.line(cam1.zaxis - cam1.xaxis / np.tan(cam1.fov/2), cam1.pos, c=(1,1,1),o=0
 
 cam2 = Camera(0.5, 100, rad(60),1)
 
-cam2.setpos(vec(2.9, -5.2, -1.51))
+cam2.setpos(vec(4.4, -5.2, -1.51))
 world.point(cam2.pos, c=(0,0,0))
 cam2.lookat(vec(1.0,0,0))
 
@@ -167,50 +167,76 @@ ppts1 = []
 ppts2 = []
 ppts3 = []
 
+connect = np.zeros((800,800),dtype=bool)
+
+for line in open("teapot_4.obj", "r"):
+    if line.startswith('#'):
+        continue
+    values = line.split()
+    if not values:
+        continue
+    if values[0] == 'v': #vertex
+        v = map(float, values[1:4])
+        pts += [vec(v[0],v[1],v[2],1.0)]
+    if values[0] == 'f':
+        v = map(int, values[1:4])
+        for i in range(3):
+            for j in range(3):
+                if v[i] > v[j]:
+                    connect[v[i]][v[j]] = True
 
 #draw cube
-for i in np.linspace(-1,1,2):
-    for j in np.linspace(-1,1,2):
-        for k in np.linspace(-1,1,2):
-            c = np.random.rand(3,1)
-            c = (float(c[0]),float(c[1]),float(c[2]))
-            cols += [c]
+#for i in np.linspace(-1,1,2):
+#    for j in np.linspace(-1,1,2):
+#        for k in np.linspace(-1,1,2):
+#            pt = vec(i,j,k,1)
+#            pts += [pt]
 
-            #point
-            pt = vec(i,j,k,1)
-            pts += [pt]
-            world.point(pt,c=c)
-            
-            #camera 1
-            ppt1 = np.dot(cam1.v,pt) #to camera-coordinates
-            ppt1 = np.dot(cam1.p,ppt1) #perspective projection
+i = 0
+for pt in pts:
+    print i
+    i += 1
+    c = np.random.rand(3,1)
+    c = (float(c[0]),float(c[1]),float(c[2]))
+    cols += [c]
 
-            ppt1 /= ppt1[3] #perspective-divide
-            ppts1 += [ppt1]
+    world.point(pt,c=c)
+    
+    #camera 1
+    ppt1 = np.dot(cam1.v,pt) #to camera-coordinates
+    ppt1 = np.dot(cam1.p,ppt1) #perspective projection
 
-            proj1.point(ppt1,c=c)
+    ppt1 /= ppt1[3] #perspective-divide
+    ppts1 += [ppt1]
 
-            #camera 2
-            ppt2 = np.dot(cam2.v,pt) #to camera-coordinates
-            ppt2 = np.dot(cam2.p,ppt2) #perspective projection
+    proj1.point(ppt1,c=c)
 
-            ppt2 /= ppt2[3] #perspective-divide
-            ppts2 += [ppt2]
+    #camera 2
+    ppt2 = np.dot(cam2.v,pt) #to camera-coordinates
+    ppt2 = np.dot(cam2.p,ppt2) #perspective projection
 
-            proj2.point(ppt2,c=c)
+    ppt2 /= ppt2[3] #perspective-divide
+    ppts2 += [ppt2]
+
+    proj2.point(ppt2,c=c)
 
 
-            #camera 3
-            ppt3 = np.dot(cam3.v,pt) #to camera-coordinates
-            ppt3 = np.dot(cam3.p,ppt3) #perspective projection
+    #camera 3
+    ppt3 = np.dot(cam3.v,pt) #to camera-coordinates
+    ppt3 = np.dot(cam3.p,ppt3) #perspective projection
 
-            ppt3 /= ppt2[3] #perspective-divide
-            ppts3 += [ppt3]
+    ppt3 /= ppt2[3] #perspective-divide
+    ppts3 += [ppt3]
 
-            proj3.point(ppt3,c=c)
+    proj3.point(ppt3,c=c)
 
 rpts = []
+
+i = 0
+
 for ppt1,ppt2,ppt3,col in zip(ppts1,ppts2,ppts3,cols):
+    print i
+    i += 1
     rpt = find_intersection(
         cam1,
         ppt1[0],
@@ -225,12 +251,18 @@ for ppt1,ppt2,ppt3,col in zip(ppts1,ppts2,ppts3,cols):
     rpts += [rpt]
     reconstruct.point(rpt,c=col)
 
+k = 0
+c = np.random.rand(3,1)
+c = (float(c[0]),float(c[1]),float(c[2]))
 
 for i in range(len(pts)):
     for j in range(len(pts)):
-        if i>j and np.random.random_sample() < 0.7:
-            c = np.random.rand(3,1)
-            c = (float(c[0]),float(c[1]),float(c[2]))
+        print k
+        k += 1
+        if connect[i][j]:
+        #if i>j and np.random.random_sample() < 0.1:
+            #c = np.random.rand(3,1)
+            #c = (float(c[0]),float(c[1]),float(c[2]))
             world.line_pt(pts[i],pts[j],c=c,w=0.03)
             proj1.line_pt(ppts1[i],ppts1[j],c=c,w=0.005)
             proj2.line_pt(ppts2[i],ppts2[j],c=c,w=0.001)
